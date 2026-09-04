@@ -1,0 +1,16 @@
+#!/bin/bash
+
+set -euo pipefail
+
+plugin_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
+source_file="$plugin_dir/assets/trackpad-speed.desktop"
+applications_dir="${XDG_DATA_HOME:-$HOME/.local/share}/applications"
+target_file="$applications_dir/omarchy-trackpad-speed.desktop"
+
+mkdir -p "$applications_dir"
+if [[ ! -f $target_file ]] || ! cmp -s "$source_file" "$target_file"; then
+  install -m 0644 "$source_file" "$target_file"
+  if command -v update-desktop-database >/dev/null 2>&1; then
+    update-desktop-database "$applications_dir" >/dev/null 2>&1 || true
+  fi
+fi

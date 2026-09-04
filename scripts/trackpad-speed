@@ -1,0 +1,80 @@
+#!/bin/bash
+
+set -euo pipefail
+
+state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/omarchy-trackpad-speed"
+state_file="$state_dir/speed"
+
+normalize() {
+  local requested="$1"
+  [[ $requested =~ ^-?([0-9]+([.][0-9]*)?|[.][0-9]+)$ ]] || return 2
+  LC_ALL=C awk -v value="$requested" 'BEGIN {
+    if (value < -1 || value > 1) exit 2
+    rounded = int(value * 20 + (value < 0 ? -0.5 : 0.5)) / 20
+    printf "%.2f", rounded
+  }'
+}
+
+read_speed() {
+  local value="0.00"
+  if [[ -r $state_file ]]; then
+    IFS= read -r value <"$state_file" || true
+  fi
+  normalize "$value" 2>/dev/null || printf '0.00'
+}
+
+apply_speed() {
+  local speed="$1"
+  local device
+  device=$(omarchy-hw-touchpad)
+  [[ -n $device ]] || {
+    printf 'No touchpad detected by omarchy-hw-touchpad.\n' >&2
+    return 1
+  }
+  [[ $device != *[[:cntrl:]]* ]] || {
+    printf 'The detected touchpad name is invalid.\n' >&2
+    return 1
+  }
+
+  local quoted=${device//\\/\\\\}
+  quoted=${quoted//\"/\\\"}
+  hyprctl eval "hl.device({ name = \"$quoted\", sensitivity = $speed })" >/dev/null
+  printf '%s\n' "$speed"
+}
+
+store_speed() {
+  local speed="$1"
+  mkdir -p "$state_dir"
+  local temporary
+  temporary=$(mktemp "$state_dir/.speed.XXXXXX")
+  trap 'rm -f "$temporary"' EXIT
+  printf '%s\n' "$speed" >"$temporary"
+  mv "$temporary" "$state_file"
+  trap - EXIT
+}
+
+case "${1:-get}" in
+  get)
+    read_speed
+    printf '\n'
+    ;;
+  apply)
+    apply_speed "$(read_speed)"
+    ;;
+  set)
+    [[ $# -eq 2 ]] || {
+      printf 'Usage: trackpad-speed set <-1..1>\n' >&2
+      exit 2
+    }
+    speed=$(normalize "$2") || {
+      printf 'Trackpad speed must be a number between -1 and 1.\n' >&2
+      exit 2
+    }
+    store_speed "$speed"
+    apply_speed "$speed"
+    ;;
+  *)
+    printf 'Usage: trackpad-speed {get|apply|set <-1..1>}\n' >&2
+    exit 2
+    ;;
+esac
