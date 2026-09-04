@@ -10,3 +10,4 @@ Terminal=false
 Categories=Settings;HardwareSettings;
 Keywords=trackpad;touchpad;pointer;mouse;speed;sensitivity;
 StartupNotify=false
+X-Omarchy-Plugin=io.github.tigran01.trackpad-speed

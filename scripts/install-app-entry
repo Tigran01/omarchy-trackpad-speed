@@ -8,6 +8,11 @@ applications_dir="${XDG_DATA_HOME:-$HOME/.local/share}/applications"
 target_file="$applications_dir/omarchy-trackpad-speed.desktop"
 
 mkdir -p "$applications_dir"
+if [[ -e $target_file ]] && ! grep -q '^X-Omarchy-Plugin=io.github.tigran01.trackpad-speed$' "$target_file"; then
+  printf 'Not replacing unrelated desktop entry: %s\n' "$target_file" >&2
+  exit 0
+fi
+
 if [[ ! -f $target_file ]] || ! cmp -s "$source_file" "$target_file"; then
   install -m 0644 "$source_file" "$target_file"
   if command -v update-desktop-database >/dev/null 2>&1; then

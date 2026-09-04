@@ -3,9 +3,9 @@
 A native, theme-aware Omarchy Shell plugin for adjusting trackpad pointer
 speed without opening a terminal.
 
-It adds a compact speed control to the status bar and a **Trackpad Speed**
-entry to the app launcher. Click the bar item for a slider and presets, or
-scroll over it for quick adjustments.
+It adds a **Trackpad Speed** entry to the app launcher and can optionally add
+a compact speed control to the status bar. Click the bar item for a slider
+and presets, or scroll over it for quick adjustments.
 
 ## Features
 
@@ -28,15 +28,32 @@ scroll over it for quick adjustments.
 
 This includes Apple Silicon MacBooks running Omarchy/Asahi Linux.
 
+## Dependencies and permissions
+
+The plugin uses components already included with Omarchy: Quickshell,
+Hyprland, `omarchy-hw-touchpad`, `hyprctl`, `jq`, and standard shell tools.
+It has no network service, remote build, package installation, or compiled
+dependency. It runs entirely with the current user's permissions and never
+uses `sudo`, `pkexec`, or another privilege boundary.
+
+When enabled, the plugin creates these user-owned files:
+
+- `~/.local/share/applications/omarchy-trackpad-speed.desktop`
+- `~/.local/state/omarchy-trackpad-speed/speed`
+
+It will not replace an unrelated desktop entry at that path. The plugin only
+changes status-bar layout after the user explicitly clicks **Show in status
+bar**. It never edits Hyprland configuration files.
+
 ## Install
 
 ```bash
 omarchy plugin add https://github.com/Tigran01/omarchy-trackpad-speed.git --enable
 ```
 
-The widget defaults to the right side of the bar. Open **Trackpad Speed** from
-Apps and turn off **Show in status bar** if you prefer to use it only as an
-app. The setting can be turned back on from Apps at any time.
+Open **Trackpad Speed** from Apps and turn on **Show in status bar** for quick
+access. The widget is added to the right side of the bar and can be turned
+off again from either interface.
 
 Move the visible widget at any time:
 
@@ -58,8 +75,9 @@ settings panel whether or not the status-bar widget is visible.
 
 The selected value is stored in
 `$XDG_STATE_HOME/omarchy-trackpad-speed/speed`, falling back to
-`~/.local/state/omarchy-trackpad-speed/speed`. Status-bar visibility is stored
-in Omarchy's normal `shell.json` layout.
+`~/.local/state/omarchy-trackpad-speed/speed`. Clicking the status-bar toggle
+explicitly moves the plugin between Omarchy's normal bar layout and enabled
+plugin list in `shell.json`; it does not rewrite unrelated settings.
 
 ## Update
 
@@ -87,6 +105,14 @@ saved value when Hyprland reloads its configuration.
 
 The UI uses Omarchy Shell's shared components and live theme tokens. There
 are no hard-coded theme colors.
+
+## Security
+
+Plugins run unsandboxed inside the long-running Omarchy Shell process. This
+plugin executes only its bundled scripts plus the dependencies listed above.
+Detected device names containing control characters are rejected and quoted
+before being passed to Hyprland's Lua evaluator. Security reports can be sent
+privately through GitHub's vulnerability-reporting flow.
 
 ## License
 

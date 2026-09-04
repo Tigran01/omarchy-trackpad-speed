@@ -73,7 +73,7 @@ Item {
 
   Component.onCompleted: {
     installAppProcess.running = true
-    barReadProcess.command = ["bash", barVisibilityPath, "ensure"]
+    barReadProcess.command = ["bash", barVisibilityPath, "get"]
     barReadProcess.running = true
     refresh()
   }

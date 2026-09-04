@@ -23,9 +23,9 @@ case "$action" in
     if visible; then printf 'visible\n'; else printf 'hidden\n'; fi
     exit 0
     ;;
-  ensure|show|hide|remove) ;;
+  show|hide|remove) ;;
   *)
-    printf 'Usage: bar-visibility {get|ensure|show|hide|remove}\n' >&2
+    printf 'Usage: bar-visibility {get|show|hide|remove}\n' >&2
     exit 2
     ;;
 esac
@@ -41,22 +41,21 @@ jq --arg id "$plugin_id" --arg action "$action" '
       | .bar.layout.left = [(.bar.layout.left // [])[] | select(entry_id != $id)]
       | .bar.layout.center = [(.bar.layout.center // [])[] | select(entry_id != $id)]
       | .bar.layout.right = [(.bar.layout.right // [])[] | select(entry_id != $id)]
-  else
-    .plugins = ((.plugins // []) as $plugins
-      | if any($plugins[]; entry_id == $id) then $plugins
-        else $plugins + [{id: $id}]
-        end)
-    | if $action == "show" then
-      .bar.layout.right = ((.bar.layout.right // []) as $right
+  elif $action == "show" then
+      .plugins = [(.plugins // [])[] | select(entry_id != $id)]
+      | .bar.layout.right = ((.bar.layout.right // []) as $right
         | if any($right[]; entry_id == $id) then $right
           else $right + [{id: $id}]
           end)
-    elif $action == "hide" then
-      .bar.layout.left = [(.bar.layout.left // [])[] | select(entry_id != $id)]
+  elif $action == "hide" then
+      .plugins = ((.plugins // []) as $plugins
+        | if any($plugins[]; entry_id == $id) then $plugins
+          else $plugins + [{id: $id}]
+          end)
+      | .bar.layout.left = [(.bar.layout.left // [])[] | select(entry_id != $id)]
       | .bar.layout.center = [(.bar.layout.center // [])[] | select(entry_id != $id)]
       | .bar.layout.right = [(.bar.layout.right // [])[] | select(entry_id != $id)]
-      else .
-      end
+  else .
   end
 ' "$config_file" >"$temporary"
 
