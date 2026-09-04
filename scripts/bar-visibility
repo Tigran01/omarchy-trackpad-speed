@@ -1,0 +1,67 @@
+#!/bin/bash
+
+set -euo pipefail
+
+action="${1:-get}"
+plugin_id="io.github.tigran01.trackpad-speed"
+config_file="${XDG_CONFIG_HOME:-$HOME/.config}/omarchy/shell.json"
+
+[[ -f $config_file ]] || {
+  printf 'Omarchy shell config not found: %s\n' "$config_file" >&2
+  exit 1
+}
+
+visible() {
+  jq -e --arg id "$plugin_id" '
+    any((.bar.layout.left // [])[], (.bar.layout.center // [])[], (.bar.layout.right // [])[];
+      (if type == "object" then .id else . end) == $id)
+  ' "$config_file" >/dev/null
+}
+
+case "$action" in
+  get)
+    if visible; then printf 'visible\n'; else printf 'hidden\n'; fi
+    exit 0
+    ;;
+  ensure|show|hide|remove) ;;
+  *)
+    printf 'Usage: bar-visibility {get|ensure|show|hide|remove}\n' >&2
+    exit 2
+    ;;
+esac
+
+config_dir=$(dirname "$config_file")
+temporary=$(mktemp "$config_dir/.shell.json.trackpad-speed.XXXXXX")
+trap 'rm -f "$temporary"' EXIT
+
+jq --arg id "$plugin_id" --arg action "$action" '
+  def entry_id: if type == "object" then .id else . end;
+  if $action == "remove" then
+      .plugins = [(.plugins // [])[] | select(entry_id != $id)]
+      | .bar.layout.left = [(.bar.layout.left // [])[] | select(entry_id != $id)]
+      | .bar.layout.center = [(.bar.layout.center // [])[] | select(entry_id != $id)]
+      | .bar.layout.right = [(.bar.layout.right // [])[] | select(entry_id != $id)]
+  else
+    .plugins = ((.plugins // []) as $plugins
+      | if any($plugins[]; entry_id == $id) then $plugins
+        else $plugins + [{id: $id}]
+        end)
+    | if $action == "show" then
+      .bar.layout.right = ((.bar.layout.right // []) as $right
+        | if any($right[]; entry_id == $id) then $right
+          else $right + [{id: $id}]
+          end)
+    elif $action == "hide" then
+      .bar.layout.left = [(.bar.layout.left // [])[] | select(entry_id != $id)]
+      | .bar.layout.center = [(.bar.layout.center // [])[] | select(entry_id != $id)]
+      | .bar.layout.right = [(.bar.layout.right // [])[] | select(entry_id != $id)]
+      else .
+      end
+  end
+' "$config_file" >"$temporary"
+
+chmod --reference="$config_file" "$temporary"
+mv "$temporary" "$config_file"
+trap - EXIT
+
+if visible; then printf 'visible\n'; else printf 'hidden\n'; fi

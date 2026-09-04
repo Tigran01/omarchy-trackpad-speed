@@ -16,6 +16,7 @@ scroll over it for quick adjustments.
 - Automatic touchpad detection through Omarchy
 - Persistent speed across login and Hyprland config reloads
 - Per-device configuration, so external mouse speed is unchanged
+- Optional status-bar presence, controlled from the settings panel
 - Live Omarchy colors, typography, spacing, and control styling
 - ARM64 and x86-64 compatible; no compiled components
 
@@ -33,25 +34,32 @@ This includes Apple Silicon MacBooks running Omarchy/Asahi Linux.
 omarchy plugin add https://github.com/Tigran01/omarchy-trackpad-speed.git --enable
 ```
 
-The widget defaults to the right side of the bar. Move it at any time:
+The widget defaults to the right side of the bar. Open **Trackpad Speed** from
+Apps and turn off **Show in status bar** if you prefer to use it only as an
+app. The setting can be turned back on from Apps at any time.
+
+Move the visible widget at any time:
 
 ```bash
 omarchy bar move io.github.tigran01.trackpad-speed --before omarchy.monitor
 ```
 
 The app launcher entry is installed automatically when the plugin service
-starts. Search for **Trackpad Speed** in Apps.
+starts. Search for **Trackpad Speed** in Apps. It opens a standalone themed
+settings panel whether or not the status-bar widget is visible.
 
 ## Use
 
-- Click the bar value to open the full control.
+- Open **Trackpad Speed** from Apps for the full settings panel.
+- Click the optional bar value for a compact control.
 - Scroll over the bar value to adjust by `0.05`.
 - Drag the slider or choose a preset.
 - Use `Left`/`Right` for fine control and `Up`/`Down` for presets.
 
 The selected value is stored in
 `$XDG_STATE_HOME/omarchy-trackpad-speed/speed`, falling back to
-`~/.local/state/omarchy-trackpad-speed/speed`.
+`~/.local/state/omarchy-trackpad-speed/speed`. Status-bar visibility is stored
+in Omarchy's normal `shell.json` layout.
 
 ## Update
 
@@ -62,6 +70,7 @@ omarchy plugin update io.github.tigran01.trackpad-speed
 ## Remove
 
 ```bash
+~/.config/omarchy/plugins/io.github.tigran01.trackpad-speed/scripts/bar-visibility remove
 omarchy plugin remove io.github.tigran01.trackpad-speed
 rm -f ~/.local/share/applications/omarchy-trackpad-speed.desktop
 rm -rf ~/.local/state/omarchy-trackpad-speed

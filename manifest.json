@@ -2,15 +2,18 @@
   "schemaVersion": 1,
   "id": "io.github.tigran01.trackpad-speed",
   "name": "Trackpad Speed",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "author": "Tigran01",
   "description": "A fast, theme-aware trackpad speed control for Omarchy",
   "kinds": [
     "service",
+    "panel",
     "bar-widget"
   ],
+  "keepLoaded": false,
   "entryPoints": {
     "service": "Service.qml",
+    "panel": "Settings.qml",
     "barWidget": "Panel.qml"
   },
   "barWidget": {

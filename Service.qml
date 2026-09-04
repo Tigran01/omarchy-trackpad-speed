@@ -15,11 +15,16 @@ Item {
   property bool pendingApply: false
   property bool pendingSet: false
   property real pendingSpeed: 0.0
+  property bool showInBar: true
+  property bool pendingBarChange: false
+  property bool pendingBarVisibility: true
 
   readonly property string helperPath: decodeURIComponent(
     Qt.resolvedUrl("scripts/trackpad-speed").toString().replace(/^file:\/\//, ""))
   readonly property string appInstallerPath: decodeURIComponent(
     Qt.resolvedUrl("scripts/install-app-entry").toString().replace(/^file:\/\//, ""))
+  readonly property string barVisibilityPath: decodeURIComponent(
+    Qt.resolvedUrl("scripts/bar-visibility").toString().replace(/^file:\/\//, ""))
 
   signal speedChangedByUser(real value)
 
@@ -48,8 +53,28 @@ Item {
     applyProcess.running = true
   }
 
+  function refreshBarVisibility() {
+    if (!barReadProcess.running) {
+      barReadProcess.command = ["bash", barVisibilityPath, "get"]
+      barReadProcess.running = true
+    }
+  }
+
+  function setBarVisible(value) {
+    root.showInBar = !!value
+    if (barWriteProcess.running) {
+      root.pendingBarChange = true
+      root.pendingBarVisibility = root.showInBar
+      return
+    }
+    barWriteProcess.command = ["bash", barVisibilityPath, value ? "show" : "hide"]
+    barWriteProcess.running = true
+  }
+
   Component.onCompleted: {
     installAppProcess.running = true
+    barReadProcess.command = ["bash", barVisibilityPath, "ensure"]
+    barReadProcess.running = true
     refresh()
   }
 
@@ -113,6 +138,27 @@ Item {
   Process {
     id: installAppProcess
     command: ["bash", root.appInstallerPath]
+  }
+
+  Process {
+    id: barReadProcess
+    stdout: StdioCollector {
+      waitForEnd: true
+      onStreamFinished: root.showInBar = String(text || "").trim() === "visible"
+    }
+  }
+
+  Process {
+    id: barWriteProcess
+    stdout: StdioCollector {
+      waitForEnd: true
+      onStreamFinished: root.showInBar = String(text || "").trim() === "visible"
+    }
+    onExited: function() {
+      if (!root.pendingBarChange) return
+      root.pendingBarChange = false
+      root.setBarVisible(root.pendingBarVisibility)
+    }
   }
 
   Connections {

@@ -13,8 +13,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Validate shell scripts
-        run: bash -n scripts/trackpad-speed scripts/install-app-entry
+        run: bash -n scripts/trackpad-speed scripts/install-app-entry scripts/bar-visibility
       - name: Validate JSON
         run: jq -e . manifest.json >/dev/null
       - name: Check required plugin files
-        run: test -f Panel.qml && test -f Service.qml && test -f manifest.json
+        run: test -f Panel.qml && test -f Settings.qml && test -f Service.qml && test -f manifest.json

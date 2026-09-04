@@ -250,6 +250,19 @@ Panel {
           }
         }
 
+        PanelSeparator { foreground: root.bar.foreground }
+
+        Toggle {
+          width: parent.width
+          label: "Show in status bar"
+          description: "Keep this quick control visible in the Omarchy bar"
+          checked: root.speedService ? root.speedService.showInBar : true
+          foreground: root.bar.foreground
+          accent: Color.accent
+          fontFamily: root.bar.fontFamily
+          onClicked: if (root.speedService) root.speedService.setBarVisible(!checked)
+        }
+
         Text {
           width: parent.width
           text: "Scroll the bar item or use ← / → for fine control"
