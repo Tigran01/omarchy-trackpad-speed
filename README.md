@@ -7,6 +7,8 @@ It adds a **Trackpad Speed** entry to the app launcher and can optionally add
 a compact speed control to the status bar. Click the bar item for a slider
 and presets, or scroll over it for quick adjustments.
 
+![Trackpad Speed settings panel](assets/screenshot.jpg)
+
 ## Features
 
 - Pointer speed from `-1.00` to `+1.00` in `0.05` steps
